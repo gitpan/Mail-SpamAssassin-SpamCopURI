@@ -1,6 +1,6 @@
 #!perl -w
 
-use Test::More tests => 12;
+use Test::More tests => 13;
 use Mail::SpamAssassin::SpamCopURI;
 use Mail::SpamAssassin::PerMsgStatus;
 
@@ -63,3 +63,10 @@ ok($sc_url->{host} eq '213.172.31.16', 'host was de-hexed');
 $sc_url = $sc->_spamcop_uri('http://1110325108/bigtitpatrol/index.html');
 
 ok($sc_url->{host} eq '66.46.55.116', 'host was de-base10');
+
+$sc_url = $sc->_spamcop_uri('http://%38%31%2E%32%30%38%2E%33%31%2E%31%37%33:%34%39%30%33/%63%69%74/%69%6E%64%65%78%2E%68%74%6D');
+
+# port was tacked on to the host as: 81.208.31.173:4903
+ok($sc_url->{host} eq '81.208.31.173', 'host was de-hexed properly and port stripped off');
+
+

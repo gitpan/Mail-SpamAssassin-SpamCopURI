@@ -10,7 +10,7 @@ use vars qw($VERSION $MAX_RESOLVE_COUNT $LWP_TIMEOUT);
 $MAX_RESOLVE_COUNT = 4; # XXX could make both of these config options
 $LWP_TIMEOUT = 5;
 
-$VERSION = 0.18;
+$VERSION = 0.19;
 
 my $IP_RE= qr/^[0-9]+(\.[0-9]+){3}$/;
 my $HEX_IP_RE= qr/^(0x[a-f0-9]{2}|[0-9]+)(\.0x[a-f0-9]{2}|\.[0-9]+){3}$/i;
@@ -270,6 +270,10 @@ sub _spamcop_uri {
 
   # convert IPs like 1110325108 to 66.46.55.116  
   $url{host} = _debase10_host($url{host});
+
+  # URI doesn't always put the port in the right place
+  # so we strip it off here
+  $url{host} =~ s/:[0-9]+$// if $url{host};
 
   if ($url{host} && $url{host} !~ $IP_RE) {
 

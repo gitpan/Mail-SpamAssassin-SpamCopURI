@@ -26,9 +26,18 @@ my $snip_url = "http://snipurl.com/67oj";
 
 
 SKIP: {
-  eval { require LWP::UserAgent };
+  #eval { require LWP::UserAgent;
+  #      my $ua = LWP::UserAgent->new;
+  #      $ua->timeout(10);
+  #      $ua->env_proxy;
+  #      my $response = $ua->get('http://www.surbl.org/');
+  #      $response->is_success or die "request failed: " . $response->as_string;
+  #};
+  #skip "LWP::UserAgent not installed or can't fetch", 5 if $@;
 
-  skip "LWP::UserAgent not installed", 5 if $@;
+  skip "Need reliable open redirect to test against - rd.yahoo.com is closed", 5 if 1;
+
+
 
   my $sc = Mail::SpamAssassin::SpamCopURI->new($msg);  
 
