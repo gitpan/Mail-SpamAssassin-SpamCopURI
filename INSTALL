@@ -1,6 +1,6 @@
 Mail::SpamAssassin::SpamCopURI
 ===========
-This module must now only be installed with SA 2.63.  
+This module must now only be installed with SA 2.63 or 2.64.  
 A check is done in the Makefile.PL to ensure the correct version.
 Changes were made to core classes and these are distributed with 
 this package to ease installation.  

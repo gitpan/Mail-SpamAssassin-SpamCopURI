@@ -3,8 +3,9 @@ use strict;
 use Mail::SpamAssassin;
 use Config;
 
-$Mail::SpamAssassin::VERSION == 2.63 or 
-  die "*** YOU MUST USE SPAMASSASSIN 2.63 to run this - see INSTALL";
+my $sa_version = $Mail::SpamAssassin::VERSION;
+($sa_version == 2.63 or $sa_version == 2.64) or 
+  die "*** YOU MUST USE SPAMASSASSIN 2.63 or 2.64 to run this - see INSTALL";
 
 
 
@@ -51,6 +52,15 @@ if ($target) {
 }
 
 print "# @INSTALLDIRS\n";
+
+
+
+unlink("lib/$PERMSG_PM");
+
+print "# linking plib/$sa_version/$PERMSG_PM -> lib/$PERMSG_PM\n";
+
+link("plib/$sa_version/$PERMSG_PM",
+     "lib/$PERMSG_PM") or die "failed to link appropiate PerMsgStatus.pm: $!";
 
 WriteMakefile(
     'NAME'          => 'Mail::SpamAssassin::SpamCopURI',

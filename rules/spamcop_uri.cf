@@ -1,16 +1,25 @@
-uri SPAMCOP_URI_RBL           eval:check_spamcop_uri_rbl('sc.surbl.org','127.0.0.2')
+uri SPAMCOP_URI_RBL           eval:check_spamcop_uri_rbl('multi.surbl.org','127.0.0.0+2')
 describe SPAMCOP_URI_RBL      URI's domain appears in spamcop database at sc.surbl.org
-tflags SPAMCOP_URI_RBL	net
-
-# bitmasked results can be used by adding a slash after the ip:
-# uri SPAMCOP_URI_RBL           eval:check_spamcop_uri_rbl('multi.surbl.org','127.0.0.0/2')
-# describe SPAMCOP_URI_RBL      URI's domain appears in spamcop database at sc.surbl.org
-# tflags SPAMCOP_URI_RBL	net
-# score SPAMCOP_URI_RBL  3.0
-
+tflags SPAMCOP_URI_RBL  net
+                                                                                                               
+uri WS_URI_RBL           eval:check_spamcop_uri_rbl('multi.surbl.org','127.0.0.0+4')
+describe WS_URI_RBL      URI's domain appears in ws database at ws.surbl.org
+tflags WS_URI_RBL net
+                                                                                                               
+uri PH_URI_RBL           eval:check_spamcop_uri_rbl('multi.surbl.org','127.0.0.0+8')
+describe PH_URI_RBL      URI's domain appears in ws database at ph.surbl.org
+tflags PH_URI_RBL net
+                                                                                                               
+uri OB_URI_RBL           eval:check_spamcop_uri_rbl('multi.surbl.org','127.0.0.0+16')
+describe OB_URI_RBL      URI's domain appears in ws database at ob.surbl.org
+tflags OB_URI_RBL net
 
 
 score SPAMCOP_URI_RBL  3.0
+score WS_URI_RBL  2.1
+score OB_URI_RBL  2.1
+score PH_URI_RBL  1.5
+
 
 # open redirect resolution off by default
 # spamcop_uri_resolve_open_redirects 1 

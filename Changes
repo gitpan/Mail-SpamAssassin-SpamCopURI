@@ -1,3 +1,9 @@
+0.22 Thu Aug  5 13:09:15 PDT 2004
+   - Updated Makefile.pl to support 2.64 and including
+     PerMsgStatus.pm from 2.64 release.  Install
+     process now figures out what version you have
+     and installs correct patched version of PerMsgStatus.pm.
+
 0.21 Wed Aug  4 16:41:31 PDT 2004
    - Defaulting config param spamcop_uri_limit to 20.  If
      the number of URLs in a message exceeds the limit, they
