@@ -1,0 +1,10 @@
+Makefile.PL
+diff-2.63
+MANIFEST
+README
+INSTALL
+Changes
+lib/Mail/SpamAssassin/SpamCopURI.pm
+lib/Mail/SpamAssassin/PerMsgStatus.pm
+lib/Mail/SpamAssassin/Conf.pm
+rules/spamcop_uri.cf

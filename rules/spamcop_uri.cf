@@ -1,0 +1,24 @@
+uri SPAMCOP_URI_RBL           eval:check_spamcop_uri_rbl('sc.surbl.org','127.0.0.2')
+describe SPAMCOP_URI_RBL      URI's domain appears in spamcop database at sc.surbl.org
+tflags SPAMCOP_URI_RBL	net
+
+score SPAMCOP_URI_RBL  3.0
+
+# open redirect resolution off by default
+# spamcop_uri_resolve_open_redirects 1 
+
+open_redirect_list_spamcop_uri   snurl.com              *.snurl.com
+open_redirect_list_spamcop_uri   snipurl.com            *.snipurl.com
+open_redirect_list_spamcop_uri   tinyclick.com          *.tinyclick.com
+open_redirect_list_spamcop_uri   babyurl.com            *.babyurl.com
+open_redirect_list_spamcop_uri   lin.kz                 *.lin.kz
+open_redirect_list_spamcop_uri   *.v3.net
+open_redirect_list_spamcop_uri   shorl.com              *.shorl.com
+open_redirect_list_spamcop_uri   tinyurl.com            *.tinyurl.com
+open_redirect_list_spamcop_uri   xurl.us
+
+
+# whitelist_spamcop_uri   *.yahoo.com
+# blacklist_spamcop_uri   *medz4cheap.com
+
+
