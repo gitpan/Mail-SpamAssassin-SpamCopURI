@@ -1,12 +1,10 @@
 --- Mail-SpamAssassin-2.63/lib/Mail/SpamAssassin/Conf.pm	2004-01-17 15:56:08.000000000 -0800
-+++ spamcopuri/trunk/lib/Mail/SpamAssassin/Conf.pm	2004-04-20 21:09:27.000000000 -0700
-@@ -218,6 +218,15 @@
++++ spamcopuri/trunk/lib/Mail/SpamAssassin/Conf.pm	2004-07-31 11:01:01.000000000 -0700
+@@ -218,6 +218,13 @@
    $self->{whitelist_from} = { };
    $self->{blacklist_from} = { };
  
-+  $self->{spamcop_uri_src} = '';
-+  $self->{spamcop_uri_path} = '__userstate__/spamcop_uri';
-+
++  $self->{spamcop_uri_limit} = 0;
 +
 +  $self->{spamcop_uri_resolve_open_redirects} = 0;
 +  $self->{open_redirect_list_spamcop_uri} = { };
@@ -16,7 +14,7 @@
    $self->{blacklist_to} = { };
    $self->{whitelist_to} = { };
    $self->{more_spam_to} = { };
-@@ -596,6 +605,54 @@
+@@ -596,6 +603,42 @@
        $self->add_to_addrlist ('blacklist_to', split (' ', $1)); next;
      }
  
@@ -55,23 +53,11 @@
 +    if (/^blacklist_spamcop_uri\s+(.+)$/) {
 +      $self->add_to_addrlist ('blacklist_spamcop_uri', split (' ', $1)); next;
 +    }
-+=item spamcop_uri_src STRING
-+
-+This option tells SpamAssassin specifically where to find the source
-+for the spamcop URI data.  This should be a URL that LWP can use to fetch
-+the most recent blacklisted URLs.  If the C<spamcop_uri_src> is not
-+specified, it will default to http://www.spamcop.net/w3m?action=inprogress&type=www.
-+
-+=cut
-+
-+    if (/^spamcop_uri[-_]src\s+(.+)$/) {
-+      $self->{spamcop_uri_src} = $1; next;
-+    }
 +
  =back
  
  =head2 SCORING OPTIONS
-@@ -1281,6 +1338,18 @@
+@@ -1281,6 +1324,31 @@
        $self->{dcc_fuz2_max} = $1+0; next;
      }
  
@@ -87,10 +73,23 @@
 +    if (/^spamcop_uri_resolve_open_redirects\s+(\d+)$/) {
 +      $self->{spamcop_uri_resolve_open_redirects} = $1; next;
 +    }
++
++=item spamcop_uri_limit { integer }		(default: 0)
++
++Set the maximum number of URIs to check per RBL.
++If you set this to 10 and you run mail against three RBL lists,
++up to 30 checks could be run for a particular piece of mail.
++'0' indicates no limit.
++
++=cut
++
++    if (/^spamcop_uri_limit\s+(\d+)$/) {
++      $self->{spamcop_uri_limit} = $1; next;
++    }
  
  =item use_pyzor ( 0 | 1 )		(default: 1)
  
-@@ -2060,10 +2129,12 @@
+@@ -2060,10 +2128,12 @@
  =cut
  
  # we don't do URI evals yet - maybe later
@@ -107,7 +106,7 @@
      if (/^uri\s+(\S+)\s+(.*)$/) {
        $self->add_test ($1, $2, TYPE_URI_TESTS);
        next;
-@@ -2610,9 +2681,9 @@
+@@ -2610,9 +2680,9 @@
  	elsif ($type == TYPE_FULL_EVALS) {
  	  $self->{full_evals}->{$name} = \@args;
  	}
@@ -121,7 +120,7 @@
  	  $self->{errors}++;
  	  sa_die(70, "unknown type $type for $name: $text");
 --- Mail-SpamAssassin-2.63/lib/Mail/SpamAssassin/PerMsgStatus.pm	2004-01-20 13:40:04.000000000 -0800
-+++ spamcopuri/trunk/lib/Mail/SpamAssassin/PerMsgStatus.pm	2004-02-29 17:38:28.000000000 -0800
++++ spamcopuri/trunk/lib/Mail/SpamAssassin/PerMsgStatus.pm	2004-07-31 10:58:22.000000000 -0700
 @@ -38,6 +38,7 @@
  use Text::Wrap ();
  

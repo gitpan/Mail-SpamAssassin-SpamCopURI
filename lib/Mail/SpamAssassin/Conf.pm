@@ -218,9 +218,7 @@ sub new {
   $self->{whitelist_from} = { };
   $self->{blacklist_from} = { };
 
-  $self->{spamcop_uri_src} = '';
-  $self->{spamcop_uri_path} = '__userstate__/spamcop_uri';
-
+  $self->{spamcop_uri_limit} = 0;
 
   $self->{spamcop_uri_resolve_open_redirects} = 0;
   $self->{open_redirect_list_spamcop_uri} = { };
@@ -639,18 +637,6 @@ Same format as C<whitelist_spamcop_uri>.
 
     if (/^blacklist_spamcop_uri\s+(.+)$/) {
       $self->add_to_addrlist ('blacklist_spamcop_uri', split (' ', $1)); next;
-    }
-=item spamcop_uri_src STRING
-
-This option tells SpamAssassin specifically where to find the source
-for the spamcop URI data.  This should be a URL that LWP can use to fetch
-the most recent blacklisted URLs.  If the C<spamcop_uri_src> is not
-specified, it will default to http://www.spamcop.net/w3m?action=inprogress&type=www.
-
-=cut
-
-    if (/^spamcop_uri[-_]src\s+(.+)$/) {
-      $self->{spamcop_uri_src} = $1; next;
     }
 
 =back
@@ -1349,6 +1335,19 @@ whether we are going to attempt to resolve the redirect.
 
     if (/^spamcop_uri_resolve_open_redirects\s+(\d+)$/) {
       $self->{spamcop_uri_resolve_open_redirects} = $1; next;
+    }
+
+=item spamcop_uri_limit { integer }		(default: 0)
+
+Set the maximum number of URIs to check per RBL.
+If you set this to 10 and you run mail against three RBL lists,
+up to 30 checks could be run for a particular piece of mail.
+'0' indicates no limit.
+
+=cut
+
+    if (/^spamcop_uri_limit\s+(\d+)$/) {
+      $self->{spamcop_uri_limit} = $1; next;
     }
 
 =item use_pyzor ( 0 | 1 )		(default: 1)

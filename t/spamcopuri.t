@@ -1,6 +1,6 @@
 #!perl -w
 
-use Test::More tests => 13;
+use Test::More tests => 14;
 use Mail::SpamAssassin::SpamCopURI;
 use Mail::SpamAssassin::PerMsgStatus;
 
@@ -59,6 +59,10 @@ ok($sc_url->{host} eq '', '. host does not cause error');
 $sc_url = $sc->_spamcop_uri('http://0xd5.172.31.16/bigtitpatrol/index.html');
 
 ok($sc_url->{host} eq '213.172.31.16', 'host was de-hexed');
+
+$sc_url = $sc->_spamcop_uri('http://.spammy-site.org');
+
+ok($sc_url->{host} eq 'spammy-site.org', 'first dot removed');
 
 $sc_url = $sc->_spamcop_uri('http://1110325108/bigtitpatrol/index.html');
 

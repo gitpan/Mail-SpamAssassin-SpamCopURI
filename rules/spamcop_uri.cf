@@ -2,6 +2,13 @@ uri SPAMCOP_URI_RBL           eval:check_spamcop_uri_rbl('sc.surbl.org','127.0.0
 describe SPAMCOP_URI_RBL      URI's domain appears in spamcop database at sc.surbl.org
 tflags SPAMCOP_URI_RBL	net
 
+# bitmasked results can be used by adding a slash after the ip:
+# uri SPAMCOP_URI_RBL           eval:check_spamcop_uri_rbl('multi.surbl.org','127.0.0.0/2')
+# describe SPAMCOP_URI_RBL      URI's domain appears in spamcop database at sc.surbl.org
+# tflags SPAMCOP_URI_RBL	net
+
+
+
 score SPAMCOP_URI_RBL  3.0
 
 # open redirect resolution off by default

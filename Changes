@@ -1,3 +1,32 @@
+0.20 Sat Jul 31 22:02:20 PDT 2004
+  - adding max url config param to limit number of URLs checked 
+    in an email.  Usage (place into .cf file):
+      spamcop_uri_limit 50
+    Default is unlimited.
+  
+  - adding support for multi.surbl.org / bitmasked results.  
+    query results on cached on a per msg basis to prevent additional
+    lookups.
+
+    Modify your configuration to look like the following for sc.surbl.org:
+
+     uri SPAMCOP_URI_RBL           eval:check_spamcop_uri_rbl('multi.surbl.org','127.0.0.0/2')
+     describe SPAMCOP_URI_RBL      URI's domain appears in spamcop database at sc.surbl.org
+     tflags SPAMCOP_URI_RBL	net
+
+    ws.surbl.org would look like this:
+
+      uri WS_URI_RBL           eval:check_spamcop_uri_rbl('multi.surbl.org','127.0.0.0/4')
+      describe WS_URI_RBL      URI's domain appears in ws database at ws.surbl.org
+      tflags WS_URI_RBL       net
+
+  - Removed configuration params: spamcop_uri_src 
+    and spamcop_uri_path since
+    these should never be used anymore.
+
+  - added cleanup for hosts that come in with a dot in front of
+    of the host (e.g. http://.spammy-site.org)
+
 0.19 Wed Jul 21 08:56:57 PDT 2004
    - fix for hex-encoded urls that have a port
    - skipping open_redirect tests until reliable open_redirector is found

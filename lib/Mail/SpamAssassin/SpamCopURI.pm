@@ -10,7 +10,7 @@ use vars qw($VERSION $MAX_RESOLVE_COUNT $LWP_TIMEOUT);
 $MAX_RESOLVE_COUNT = 4; # XXX could make both of these config options
 $LWP_TIMEOUT = 5;
 
-$VERSION = 0.19;
+$VERSION = 0.20;
 
 my $IP_RE= qr/^[0-9]+(\.[0-9]+){3}$/;
 my $HEX_IP_RE= qr/^(0x[a-f0-9]{2}|[0-9]+)(\.0x[a-f0-9]{2}|\.[0-9]+){3}$/i;
@@ -25,7 +25,10 @@ sub new {
 
   my $msg  = shift || die "must supply a PerMsgStatus";
 
-  my $self = {msg => $msg, redirect_cache => {}, rbl_cache => {}};
+  my $self = {msg => $msg};
+
+  $msg->{spamcopuri_redirect_cache} ||= {};
+  $msg->{spamcopuri_rbl_cache} ||= {};
 
   bless ($self, $class);
 
@@ -189,7 +192,7 @@ sub resolve_url {
 
   my $self = shift;
 
-  return $self->_fetch_cache(\&_resolve_url, $self->{redirect_cache}, @_)
+  return $self->_fetch_cache(\&_resolve_url, $self->{msg}{spamcopuri_redirect_cache}, @_)
 }
 
 ##############################################################################
@@ -275,6 +278,11 @@ sub _spamcop_uri {
   # so we strip it off here
   $url{host} =~ s/:[0-9]+$// if $url{host};
 
+
+  # Cleanup for urls that come in with a dot in the front
+  # http://.spammy-site.org
+  $url{host} =~ s/^\.// if $url{host};
+
   if ($url{host} && $url{host} !~ $IP_RE) {
 
     # RFC 1034 Section 3.1 says there should only be letters, digits and
@@ -341,7 +349,7 @@ sub query_rbl {
 
   my $self = shift;
   
-  my $addrs =  $self->_fetch_cache(\&_query_rbl, $self->{rbl_cache}, @_) || [];
+  my $addrs =  $self->_fetch_cache(\&_query_rbl, $self->{msg}{spamcopuri_rbl_cache}, @_) || [];
 
   return @$addrs;
 }
@@ -371,6 +379,53 @@ sub _extract_redirect_urls {
     return @urls;
   }
 
+}
+
+sub _check_match {
+  my $addr_match = shift;
+
+  my @res_addresses = @_;
+
+  if ($addr_match =~ m#/#) {
+
+    my ($ip, $mask) = split("/", $addr_match, 2);
+
+    my ($match_prefix, $match_last_octet) = ($ip =~ m/^(.*)\.([0-9]+)$/);
+
+    $match_last_octet == 0 or die "last octet needs to be 0 for bitmask matches";
+
+    dbg("Receieved match prefix: $match_prefix");
+
+    dbg("Receieved mask: $mask");
+
+    $mask += 0; # force numerical context
+
+    # grab 127.0.0.10 (10) and check the
+    # bitmask against what  is configured
+    # make matching correct 
+    foreach my $a (@res_addresses) {
+      dbg("Receieved address: $a");
+
+      my ($prefix, $last_octet) = ($a =~ m/^(.*)\.([0-9]+)$/);
+
+      dbg("last octet: $last_octet");
+
+      dbg("prefix: $prefix");
+
+      dbg("bitmask out:  " . ($mask & $last_octet));
+
+      next unless $prefix eq $match_prefix;
+
+      return 1 if ($mask & $last_octet) == $mask;
+    }
+
+  } else {
+    return grep {$_ eq $addr_match} @res_addresses; 
+  }
+
+  dbg("no match");
+
+  return 0;
 }
 
 sub _check_spamcop_rbl {
@@ -416,7 +471,8 @@ sub _check_spamcop_rbl {
 
   my @addrs = $self->query_rbl("$host_query.$rhs");
 
-  if (grep {$_ eq $addr_match} @addrs) {
+  
+  if (_check_match($addr_match, @addrs)) {
     $match = 1;
     $self->{msg}->test_log("$sc_url->{host} is blacklisted in URI RBL at $rhs");
   }
@@ -466,12 +522,19 @@ sub blacklisted {
 sub uniq {
 
   my @array = @_;
+                                                                                                                
+  # little slower than the previous
+  # but keeps the order
 
-  my %hash;
-
-  @hash{@array} = map {1} @array;
-
-  return keys %hash;
+  my %seen;
+  my @out;
+  foreach (@array) {
+    next if exists $seen{$_};
+    $seen{$_} = undef;
+    push @out, $_;
+  }
+                                                                                                                
+  return @out;
 }
 
 sub dbg { Mail::SpamAssassin::dbg (@_); }
@@ -494,8 +557,9 @@ sub check_spamcop_uri_rbl {
 
   my $addr_match = shift || die "no addr_match provided";
 
-  my $sc = Mail::SpamAssassin::SpamCopURI->new($self);
+  my $check_rbl_max = $self->{conf}->{spamcop_uri_limit} || 0;
 
+  my $sc = Mail::SpamAssassin::SpamCopURI->new($self);
 
   my @urls;
 
@@ -518,9 +582,16 @@ sub check_spamcop_uri_rbl {
     @urls = Mail::SpamAssassin::SpamCopURI::uniq(@extracted_urls);
   }
 
+  my $count = 0;
+
   foreach my $u (@urls) {
 
     my $sc_url = $sc->_spamcop_uri($u);
+
+    if ($check_rbl_max > 0 && $count++ >= $check_rbl_max) {
+      dbg("reached maximum number of urls to check: $check_rbl_max ($count)");
+      last;
+    }
 
     my $r = $sc->_check_spamcop_rbl($sc_url, $rhs, $addr_match);
 
