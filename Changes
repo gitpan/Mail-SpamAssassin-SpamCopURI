@@ -1,3 +1,7 @@
+0.24  Sun Mar  6 01:54:09 PST 2005
+   - updating rules/spamcop_uri.cf with latest scores, exclusions, etc.
+
+
 0.23  Sun Mar  6 01:04:46 PST 2005
    - updated diffs against SA 2.63 and 2.64
    - fixing regex for port stripping of urls
