@@ -1,3 +1,8 @@
+0.23  Sun Mar  6 01:04:46 PST 2005
+   - updated diffs against SA 2.63 and 2.64
+   - fixing regex for port stripping of urls
+   - fixing configuration for xrl.us / openredirect
+
 0.22 Thu Aug  5 13:09:15 PDT 2004
    - Updated Makefile.pl to support 2.64 and including
      PerMsgStatus.pm from 2.64 release.  Install

@@ -3,22 +3,30 @@ describe SPAMCOP_URI_RBL      URI's domain appears in spamcop database at sc.sur
 tflags SPAMCOP_URI_RBL  net
                                                                                                                
 uri WS_URI_RBL           eval:check_spamcop_uri_rbl('multi.surbl.org','127.0.0.0+4')
-describe WS_URI_RBL      URI's domain appears in ws database at ws.surbl.org
+describe WS_URI_RBL      URI's domain appears in ws.surbl.org
 tflags WS_URI_RBL net
                                                                                                                
 uri PH_URI_RBL           eval:check_spamcop_uri_rbl('multi.surbl.org','127.0.0.0+8')
-describe PH_URI_RBL      URI's domain appears in ws database at ph.surbl.org
+describe PH_URI_RBL      URI's domain appears in ph.surbl.org
 tflags PH_URI_RBL net
                                                                                                                
 uri OB_URI_RBL           eval:check_spamcop_uri_rbl('multi.surbl.org','127.0.0.0+16')
-describe OB_URI_RBL      URI's domain appears in ws database at ob.surbl.org
+describe OB_URI_RBL      URI's domain appears in ob.surbl.org
 tflags OB_URI_RBL net
+
+
+uri ABUSEBUTLER_URI_RBL           eval:check_spamcop_uri_rbl('multi.surbl.org','127.0.0.0+32')
+describe ABUSEBUTLER_URI_RBL      URI's domain appears in ab.surbl.org
+tflags ABUSEBUTLER_URI_RBL  net
+
+
 
 
 score SPAMCOP_URI_RBL  3.0
 score WS_URI_RBL  2.1
 score OB_URI_RBL  2.1
 score PH_URI_RBL  1.5
+score ABUSEBUTLER_URI_RBL  2.1
 
 
 # open redirect resolution off by default
@@ -32,7 +40,7 @@ open_redirect_list_spamcop_uri   lin.kz                 *.lin.kz
 open_redirect_list_spamcop_uri   *.v3.net
 open_redirect_list_spamcop_uri   shorl.com              *.shorl.com
 open_redirect_list_spamcop_uri   tinyurl.com            *.tinyurl.com
-open_redirect_list_spamcop_uri   xurl.us
+open_redirect_list_spamcop_uri   xrl.us
 
 
 # whitelist_spamcop_uri   *.yahoo.com

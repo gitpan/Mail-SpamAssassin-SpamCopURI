@@ -39,6 +39,13 @@ You may see some output like this when running perl Makefile.PL:
 This is safe to ignore and is only printed out to aid with potential
 installation problems.
 
+Upgrading 2.63 to 2.64 with SpamCopURI
+=============
+
+If you are upgrading from SA 2.63 to 2.64 and have SpamCopURI installed, 
+you will most likely need to remove /etc/mail/spamassassin/spamcop_uri.cf 
+for all the SA tests to complete successfully.
+
 Painful Install
 =============
 If you don't see the rules being hit, then you most likely have some

@@ -1,4 +1,4 @@
---- ../Mail-SpamAssassin-2.63/lib/Mail/SpamAssassin/Conf.pm	2004-01-17 15:56:08.000000000 -0800
+--- ../Mail-SpamAssassin-2.64/lib/Mail/SpamAssassin/Conf.pm	2004-08-04 18:48:34.000000000 -0700
 +++ lib/Mail/SpamAssassin/Conf.pm	2004-08-04 16:21:26.000000000 -0700
 @@ -218,6 +218,13 @@
    $self->{whitelist_from} = { };
@@ -119,8 +119,8 @@
  	else {
  	  $self->{errors}++;
  	  sa_die(70, "unknown type $type for $name: $text");
---- ../Mail-SpamAssassin-2.63/lib/Mail/SpamAssassin/PerMsgStatus.pm	2004-01-20 13:40:04.000000000 -0800
-+++ plib/2.63/Mail/SpamAssassin/PerMsgStatus.pm	2004-08-05 12:00:15.000000000 -0700
+--- ../Mail-SpamAssassin-2.64/lib/Mail/SpamAssassin/PerMsgStatus.pm	2004-08-04 18:48:33.000000000 -0700
++++ plib/2.64/Mail/SpamAssassin/PerMsgStatus.pm	2004-08-05 11:57:34.000000000 -0700
 @@ -38,6 +38,7 @@
  use Text::Wrap ();
  
@@ -129,7 +129,7 @@
  use Mail::SpamAssassin::AutoWhitelist;
  use Mail::SpamAssassin::HTML;
  use Mail::SpamAssassin::Conf;
-@@ -1809,6 +1810,10 @@
+@@ -1851,6 +1852,10 @@
      $self->{conf}->{user_rules_to_compile}->{Mail::SpamAssassin::Conf::TYPE_URI_TESTS};
  
    $self->{test_log_msgs} = ();	# clear test state
