@@ -3,7 +3,6 @@
 use Test::More tests => 4;
 use Mail::SpamAssassin::SpamCopURI;
 use Mail::SpamAssassin::PerMsgStatus;;
-use Storable qw(store);
 use Mail::SpamAssassin::Conf;;
 use strict;
 

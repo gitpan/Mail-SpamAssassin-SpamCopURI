@@ -1,6 +1,6 @@
 #!perl -w
 
-use Test::More tests => 6;
+use Test::More tests => 5;
 use strict;
 use Mail::SpamAssassin::SpamCopURI;
 use Mail::SpamAssassin::PerMsgStatus;;
@@ -28,7 +28,7 @@ my $snip_url = "http://snipurl.com/67oj";
 SKIP: {
   eval { require LWP::UserAgent };
 
-  skip "LWP::UserAgent not installed", 6 if $@;
+  skip "LWP::UserAgent not installed", 5 if $@;
 
   my $sc = Mail::SpamAssassin::SpamCopURI->new($msg);  
 
@@ -68,8 +68,7 @@ SKIP: {
 
   $msg->{conf}->{spamcop_uri_resolve_open_redirects} = 1;
 
-  ok($msg->check_spamcop_uri_rbl([$snip_url], 'sc.surbl.org', '127.0.0.2'), 
-           'test snip_url is bad post-config');
+  # ok($msg->check_spamcop_uri_rbl([$snip_url], 'sc.surbl.org', '127.0.0.2'), 'test snip_url is bad post-config');
 
 
 };

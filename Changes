@@ -1,3 +1,23 @@
+0.18 Wed May 26 13:41:14 PDT 2004
+   - fixed pack template for de-base 10 to use network byte
+     order.  This release is only needed by users
+     with big endian machines.
+
+
+0.17 Mon May 24 18:23:55 PDT 2004
+    - added code to handle hex encoded and base 10 encoded 
+      IP addresses
+    - added backslash handling in urls (http:/\www.google.com)
+    - handling case when host of a URL is a '.'
+    - calling env_proxy on LWP::UserAgent to support proxied
+      users
+
+0.16 Sat May 15 00:58:05 PDT 2004
+    - modified extract to catch AOL redirs
+    - fixed handling of IP's in URLs when normalization occurs
+    - adding env_proxy to LWP stuff so proxies work 
+      (thanks to bluebanana at users.sourceforge.net)
+
 0.15 Thu May  6 22:18:17 PDT 2004
     - making Makefile.PL install intelligently
     - added url extraction that should take care of rd.yahoo.com, 

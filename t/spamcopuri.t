@@ -1,6 +1,6 @@
 #!perl -w
 
-use Test::More tests => 8;
+use Test::More tests => 12;
 use Mail::SpamAssassin::SpamCopURI;
 use Mail::SpamAssassin::PerMsgStatus;
 
@@ -48,5 +48,18 @@ my @uniq = Mail::SpamAssassin::SpamCopURI::uniq(@list);
 
 ok(eq_set(\@uniq, [qw(a b c)]), 'uniq thing works');
 
+$sc_url = $sc->_spamcop_uri('http://211.238.180.181/manual/mod/.help/hide/index2.htm');
 
+ok($sc_url->{host} eq '211.238.180.181', 'ip address passes cleanly');
 
+$sc_url = $sc->_spamcop_uri('http://.');
+
+ok($sc_url->{host} eq '', '. host does not cause error');
+
+$sc_url = $sc->_spamcop_uri('http://0xd5.172.31.16/bigtitpatrol/index.html');
+
+ok($sc_url->{host} eq '213.172.31.16', 'host was de-hexed');
+
+$sc_url = $sc->_spamcop_uri('http://1110325108/bigtitpatrol/index.html');
+
+ok($sc_url->{host} eq '66.46.55.116', 'host was de-base10');

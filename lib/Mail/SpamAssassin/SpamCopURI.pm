@@ -10,9 +10,10 @@ use vars qw($VERSION $MAX_RESOLVE_COUNT $LWP_TIMEOUT);
 $MAX_RESOLVE_COUNT = 4; # XXX could make both of these config options
 $LWP_TIMEOUT = 5;
 
-$VERSION = 0.15;
+$VERSION = 0.18;
 
 my $IP_RE= qr/^[0-9]+(\.[0-9]+){3}$/;
+my $HEX_IP_RE= qr/^(0x[a-f0-9]{2}|[0-9]+)(\.0x[a-f0-9]{2}|\.[0-9]+){3}$/i;
 
 #$Mail::SpamAssassin::DEBUG->{enabled} = 1;
 
@@ -45,6 +46,7 @@ sub _resolve_url {
   # do this since we never want the content
   $ua->max_size(0);
   $ua->timeout($LWP_TIMEOUT);
+  $ua->env_proxy;
 
   dbg("redirect resolving:  $url");
 
@@ -62,9 +64,61 @@ sub _resolve_url {
   return undef;
 }
 
+sub _fixup_url {
+   my $url = shift;
+
+   # do this because yahoo only requires a single slash :(
+   # IE + Opera convert \ to /
+   $url =~ s#^(http[s]?):([/\\]{1,2})#$1://#i;
+
+ return $url;
+}
+
+# convert hosts that are completely numeric to IP
+sub _debase10_host {
+
+  my $host = shift;
+
+  if (defined $host && $host =~ /^[0-9]+$/) {
+
+    my $x = unpack("H*", pack("N*", $host ));
+
+    my @ip;
+
+    push @ip, hex($1)  while $x =~ /([a-z0-9]{2})/g;
+
+    return join(".", @ip);
+
+  } else {
+
+    return $host;
+  
+  }
+
+}
+
+sub _dehex_host {
+
+  my $host = shift;
+
+  if (defined $host && $host =~ $HEX_IP_RE) {
+      my $new_host = join (".", map { $_ =~ s/^(0x[a-f0-9]{2})$/hex($1)/ei; $_;}
+                    split(/\./, $host));
+      return $new_host;
+
+  } else {
+
+    return $host;
+
+  }
+
+}
+
 sub _extract_urls {
 
   my $url = shift;
+
+  $url = _fixup_url($url);
 
   my $u = URI->new($url);
 
@@ -72,14 +126,15 @@ sub _extract_urls {
 
   my @urls = ($url);
 
-  my ($p_url) = ($path =~ m#(http[s]?://.*)#i);
-
-  if ($p_url) {
-    push @urls, _extract_urls($p_url);
+  if ($path =~ m#(http[s]?:[\\/]{1,2}.*)#i) {
+    push @urls, _extract_urls($1);
   }
 
   my $query = uri_unescape($u->query);
 
+  # we want to be conservative here and use
+  # the anchor since we can always get the URL 
+  # from the query param if this doesn't hit
   if (defined $query && $query =~ m#(^http[s]?://.*)#i) {
     push @urls, _extract_urls($1);
   }
@@ -87,8 +142,10 @@ sub _extract_urls {
   for my $key ($u->query_param) {
     my $value = $u->query_param($key);
 
-    if ($value =~ m#(^http[s]?://.*)#i) {
-      push @urls, _extract_urls($value);
+    # removing anchor to catch AOL case
+    # where the link is buried in param
+    if ($value =~ m#(http[s]?://.*)#i) {
+      push @urls, _extract_urls($1);
     }
   }
 
@@ -208,8 +265,13 @@ sub _spamcop_uri {
     $url{$f} = ($u->can($f) && $u->$f() ? $u->$f() : undef);
   }
 
+  # convert IPs like 0xd5.172.31.16 to 213.172.31.16
+  $url{host} = _dehex_host($url{host});
 
-  if ($url{host}) {
+  # convert IPs like 1110325108 to 66.46.55.116  
+  $url{host} = _debase10_host($url{host});
+
+  if ($url{host} && $url{host} !~ $IP_RE) {
 
     # RFC 1034 Section 3.1 says there should only be letters, digits and
     # hyphens in a domain.  This is intended to clean up an encoding hack
@@ -217,14 +279,22 @@ sub _spamcop_uri {
     # Example:  http://www=2eseo500=2ecom
     $url{host} =~ s/=2e/./g;
 
+
     # strip any non alpha characters off of the end
     # this is to fix a bug where url parsing in core SA
     # leaves parens and other junk on the URL that URI
     # parses to the host
     my @p = split(/\./, $url{host});
-    $p[-1] =~ s/[^a-z].+$//i;
-    $url{host} = join ('.', @p);
-    $url{domain} = trim_domain_to_registrar_boundary($url{host});
+    if (@p) {
+      $p[-1] =~ s/[^a-z].+$//i;
+      $url{host} = join ('.', @p);
+      $url{domain} = trim_domain_to_registrar_boundary($url{host});
+
+    } else {
+
+      $url{host} = '';
+      $url{domain} = '';
+    }
   }
 
 
