@@ -6,6 +6,7 @@ tflags SPAMCOP_URI_RBL	net
 # uri SPAMCOP_URI_RBL           eval:check_spamcop_uri_rbl('multi.surbl.org','127.0.0.0/2')
 # describe SPAMCOP_URI_RBL      URI's domain appears in spamcop database at sc.surbl.org
 # tflags SPAMCOP_URI_RBL	net
+# score SPAMCOP_URI_RBL  3.0
 
 
 

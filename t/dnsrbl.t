@@ -1,6 +1,6 @@
 #!perl -w
 
-use Test::More tests => 8;
+use Test::More tests => 7;
 use URI::URL;
 use strict;
 use Mail::SpamAssassin::SpamCopURI;
@@ -27,8 +27,4 @@ ok($msg->check_spamcop_uri_rbl(['http://127.0.0.2/baddy'], 'sc.surbl.org', '127.
 ok($msg->check_spamcop_uri_rbl(['http://google.com/groups'], 'sc.surbl.org', '127.0.0.2') == 0, 'google is okay');
 
 ok($msg->check_spamcop_uri_rbl(['http://www.google.com', 'http://www.yahoo.com', 'http://surbl-org-permanent-test-point.com/good/'], 'sc.surbl.org', '127.0.0.2'), 'test rbl is bad in array');
-
-$conf->{spamcop_uri_limit} = 2;
-
-ok(!$msg->check_spamcop_uri_rbl(['http://www.google.com', 'http://www.yahoo.com', 'http://surbl-org-permanent-test-point.com/good/'], 'sc.surbl.org', '127.0.0.2'), 'test rbl is good because of limit');
 

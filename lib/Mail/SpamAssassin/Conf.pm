@@ -218,7 +218,7 @@ sub new {
   $self->{whitelist_from} = { };
   $self->{blacklist_from} = { };
 
-  $self->{spamcop_uri_limit} = 0;
+  $self->{spamcop_uri_limit} = 20;
 
   $self->{spamcop_uri_resolve_open_redirects} = 0;
   $self->{open_redirect_list_spamcop_uri} = { };
@@ -1337,7 +1337,7 @@ whether we are going to attempt to resolve the redirect.
       $self->{spamcop_uri_resolve_open_redirects} = $1; next;
     }
 
-=item spamcop_uri_limit { integer }		(default: 0)
+=item spamcop_uri_limit { integer }		(default: 20)
 
 Set the maximum number of URIs to check per RBL.
 If you set this to 10 and you run mail against three RBL lists,

@@ -10,7 +10,7 @@ use vars qw($VERSION $MAX_RESOLVE_COUNT $LWP_TIMEOUT);
 $MAX_RESOLVE_COUNT = 4; # XXX could make both of these config options
 $LWP_TIMEOUT = 5;
 
-$VERSION = 0.20;
+$VERSION = 0.21;
 
 my $IP_RE= qr/^[0-9]+(\.[0-9]+){3}$/;
 my $HEX_IP_RE= qr/^(0x[a-f0-9]{2}|[0-9]+)(\.0x[a-f0-9]{2}|\.[0-9]+){3}$/i;
@@ -285,6 +285,7 @@ sub _spamcop_uri {
 
   if ($url{host} && $url{host} !~ $IP_RE) {
 
+
     # RFC 1034 Section 3.1 says there should only be letters, digits and
     # hyphens in a domain.  This is intended to clean up an encoding hack
     # spammers use to disguise their URLs.  
@@ -307,7 +308,13 @@ sub _spamcop_uri {
       $url{host} = '';
       $url{domain} = '';
     }
+
+    $url{host_query} = $url{domain};
   }
+
+  if ($url{host} && $url{host} =~ $IP_RE) {
+    $url{host_query} =  join '.', reverse split(/\./, $url{host});
+  } 
 
 
   return \%url;
@@ -382,13 +389,19 @@ sub _extract_redirect_urls {
 }
 
 sub _check_match {
+
   my $addr_match = shift;
 
   my @res_addresses = @_;
 
-  if ($addr_match =~ m#/#) {
+  # use Data::Dumper;
+  # print "#" . Dumper($addr_match);
+  # print "#" . Dumper(\@res_addresses);
 
-    my ($ip, $mask) = split("/", $addr_match, 2);
+  if ($addr_match =~ m#([/+])#) {
+
+    my $re = quotemeta($1);
+    my ($ip, $mask) = split($re, $addr_match, 2);
 
     my ($match_prefix, $match_last_octet) = ($ip =~ m/^(.*)\.([0-9]+)$/);
 
@@ -412,9 +425,10 @@ sub _check_match {
 
       dbg("prefix: $prefix");
 
-      dbg("bitmask out:  " . ($mask & $last_octet));
 
       next unless $prefix eq $match_prefix;
+
+      dbg("bitmask out:  " . ($mask & $last_octet));
 
       return 1 if ($mask & $last_octet) == $mask;
     }
@@ -455,17 +469,7 @@ sub _check_spamcop_rbl {
     return 1;
   }
 
-  my $host_query;
-
-  if ($sc_url->{host} =~ $IP_RE) {
-
-    $host_query =  join '.', reverse split(/\./, $sc_url->{host});
-
-  } else {
-
-    $host_query = $sc_url->{domain};
-
-  }
+  my $host_query = $sc_url->{host_query};
 
   my $match = 0;
 
@@ -537,6 +541,20 @@ sub uniq {
   return @out;
 }
 
+
+# fisher yates shuffle
+# from Algorthim::Numerical::Shuffle
+sub shuffle {
+    return @_ if !@_ || ref $_ [0] eq 'ARRAY' && !@{$_ [0]};
+    my $array = @_ == 1 && ref $_ [0] eq 'ARRAY' ? shift : [@_];
+    for (my $i = @$array; -- $i;) {
+        my $r = int rand ($i + 1);
+       ($array -> [$i], $array -> [$r]) = ($array -> [$r], $array -> [$i]);
+    }
+    wantarray ? @$array : $array;
+}
+
+
 sub dbg { Mail::SpamAssassin::dbg (@_); }
 
 #sub dbg { warn(@_); }
@@ -569,7 +587,7 @@ sub check_spamcop_uri_rbl {
     push @extracted_urls, Mail::SpamAssassin::SpamCopURI::_extract_urls($u);
   }
 
-  @urls = Mail::SpamAssassin::SpamCopURI::uniq(@extracted_urls);
+  @urls = @extracted_urls;
 
   if ($self->{conf}->{spamcop_uri_resolve_open_redirects}) {
 
@@ -579,14 +597,34 @@ sub check_spamcop_uri_rbl {
       push @extracted_urls, $sc->_extract_redirect_urls($u);
     }
 
-    @urls = Mail::SpamAssassin::SpamCopURI::uniq(@extracted_urls);
+    @urls = @extracted_urls;
   }
+
+  my @uniq_urls;
+  my %seen;
+
+  # we do the uniq on host query 
+  # and maintain an accurate count of distinct urls
+  # to prevent duplicate lookups 
+  foreach my $u (grep {$_->{host} } map {$sc->_spamcop_uri($_) } @urls) {
+    next if exists $seen{$u->{host_query}};
+    push @uniq_urls, $u;
+    $seen{$u->{host_query}} = undef;
+  }
+
+
+  return 0 unless @uniq_urls;
+
+
+
+  # only shuffle if the number is greater than the limit
+  @uniq_urls = Mail::SpamAssassin::SpamCopURI::shuffle(@uniq_urls)
+    if @uniq_urls > $check_rbl_max && $check_rbl_max > 0;
+
 
   my $count = 0;
 
-  foreach my $u (@urls) {
-
-    my $sc_url = $sc->_spamcop_uri($u);
+  foreach my $sc_url (@uniq_urls) {
 
     if ($check_rbl_max > 0 && $count++ >= $check_rbl_max) {
       dbg("reached maximum number of urls to check: $check_rbl_max ($count)");
@@ -627,6 +665,13 @@ test is an immediate hit.
 
 This currently only checks URIs that support methods for host. 
 These are typically just http, https, and ftp.
+
+If the spamcop_uri_limit is set (which it is by default)
+and the number of URLs in the message exceeds this limit,
+the URLs are shuffled and testing is done only up to the
+limit.  The limit is to prevent DOS attacks, the shuffling
+is done to prevent front-loading of URLs that will fill
+the limit up with valid URLs.
 
 
 The network method tests the domain portion of the URI against

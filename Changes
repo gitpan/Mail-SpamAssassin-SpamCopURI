@@ -1,3 +1,15 @@
+0.21 Wed Aug  4 16:41:31 PDT 2004
+   - Defaulting config param spamcop_uri_limit to 20.  If
+     the number of URLs in a message exceeds the limit, they
+     are shuffled and only up to the number specified for the limit
+     are tested.  
+
+   - New syntax for specifying the address match for multi.surbl.org:
+     Instead of '127.0.0.0/2' use '127.0.0.0+2' this is being
+     done to eliminate any confusion with CIDR syntax.
+     The old '/' syntax is still supported, but will be deprecated
+     in a future version.
+
 0.20 Sat Jul 31 22:02:20 PDT 2004
   - adding max url config param to limit number of URLs checked 
     in an email.  Usage (place into .cf file):
@@ -5,7 +17,7 @@
     Default is unlimited.
   
   - adding support for multi.surbl.org / bitmasked results.  
-    query results on cached on a per msg basis to prevent additional
+    query results are cached on a per msg basis to prevent additional
     lookups.
 
     Modify your configuration to look like the following for sc.surbl.org:
@@ -13,12 +25,14 @@
      uri SPAMCOP_URI_RBL           eval:check_spamcop_uri_rbl('multi.surbl.org','127.0.0.0/2')
      describe SPAMCOP_URI_RBL      URI's domain appears in spamcop database at sc.surbl.org
      tflags SPAMCOP_URI_RBL	net
+     score SPAMCOP_URI_RBL  3.0
 
     ws.surbl.org would look like this:
 
       uri WS_URI_RBL           eval:check_spamcop_uri_rbl('multi.surbl.org','127.0.0.0/4')
       describe WS_URI_RBL      URI's domain appears in ws database at ws.surbl.org
       tflags WS_URI_RBL       net
+      score WS_URI_RBL  2.0
 
   - Removed configuration params: spamcop_uri_src 
     and spamcop_uri_path since
